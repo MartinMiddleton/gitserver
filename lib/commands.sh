@@ -50,6 +50,14 @@ stop_gitweb() {
 build_gitserver() {
   echo "Building Gitserver docker image"
   GITSERVER_BUILD_HOME=${GITSERVER_USB_HOME}/build
+
+  if [[ -d ${GITSERVER_BUILD_HOME}/ssh ]]; then
+    rm -rf ${GITSERVER_BUILD_HOME}/ssh && mkdir ${GITSERVER_BUILD_HOME}/ssh
+  fi
+
+  ssh-keygen -b 2048 -t rsa -f ${GITSERVER_BUILD_HOME}/ssh/gitclient_rsa -q -N ""
+  cp ${GITSERVER_BUILD_HOME}/ssh/gitclient_rsa.pub ${GITSERVER_BUILD_HOME}/ssh/authorized_keys
+
   docker build -t ${GITSERVER_DOCKER_IMAGE}:${GITSERVER_DOCKER_IMAGE_TAG} ${GITSERVER_BUILD_HOME}
 }
 
