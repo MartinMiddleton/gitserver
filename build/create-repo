@@ -1,0 +1,19 @@
+#!/usr/bin/env ash
+
+set -euo pipefail
+
+if [[ ! $# -eq 1 ]]; then
+  echo "Usage $0 <REPO_NAME>"
+  exit 1
+fi
+
+PROJECT=$1
+
+if [[ ! -d /srv/git/example.git ]]; then
+  echo "Creating Example Project. This is a one-time task."
+  cd /srv/git && mkdir example.git
+  cd /srv/git/example.git && git init --bare
+fi
+
+cd /srv/git && mkdir ${PROJECT}.git
+cd /srv/git/${PROJECT}.git && git init --bare

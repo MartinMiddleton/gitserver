@@ -1,0 +1,12 @@
+[init]
+  defaultBranch = master
+
+[alias]
+  serve = !git daemon --base-path=/srv/git --export-all --reuseaddr --informative-errors --verbose
+  hub = !git daemon --base-path=/srv/git --export-all --enable=receive-pack --reuseaddr --informative-errors --verbose
+  webstart = !cd /srv/git/example.git && git instaweb --start
+  webstop = !cd /srv/git/example.git && git instaweb --stop
+
+[instaweb]
+  httpd = lighttpd
+  port = 1234

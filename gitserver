@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source ./lib/helpers.sh
+source ./lib/getoptions.sh
+source ./lib/getoptions_abbr.sh
+source ./lib/getoptions_help.sh
+source ./lib/commands.sh
+
+parser_definition() {
+	setup   REST help:usage abbr:true -- \
+		"Usage: ${2##*/} [global options...] [command] [options...] [arguments...]"
+	msg -- '' 'gitserver subcommand' ''
+	# msg -- 'Options:'
+	# param   REGEX  --regex-validate 'regex "^(.*)/([^/]*)$"' \
+  #         -- '^(.*)/([^/]*)$'
+	disp    :usage  -h --help
+	# disp    VERSION    --version
+
+	msg -- '' 'Commands:'
+	cmd start -- "Start Gitserver container (read/write)"
+	cmd stop -- "Stop Gitserver container"
+	cmd webstart -- "Start Gitweb"
+  cmd webstop -- "Stop Gitweb"
+	cmd readonly -- "Start Gitserver container (readonly)"
+  cmd build -- "Build Gitserver docker image"
+  cmd initrepo -- "Initialize a Gitserver repository"
+  cmd login -- "Login to the Gitserver"
+}
+
+# shellcheck disable=SC1083
+parser_definition_start() {
+	setup   REST help:usage abbr:false -- \
+		"Usage: ${2##*/} start"
+  #   msg -- '' 'gitserver start' ''
+	# msg -- 'Options:'
+	# flag    FLAG_A  -a --flag-a
+	# disp    :usage  -h --help
+}
+
+# shellcheck disable=SC1083
+parser_definition_stop() {
+	setup   REST help:usage abbr:true -- \
+		"Usage: ${2##*/} stop"
+	# msg -- '' 'gitserver stop' ''
+	# msg -- 'Options:'
+	# flag    FLAG_B  -b --flag-b
+	# disp    :usage  -h --help
+}
+
+# shellcheck disable=SC1083
+parser_definition_webstart() {
+	setup   REST help:usage abbr:true -- \
+		"Usage: ${2##*/} webstart"
+	# msg -- '' 'gitserver webstart' ''
+	# # msg -- 'Options:'
+	# flag    FLAG_C  -c --flag-c
+	# disp    :usage  -h --help
+}
+
+# shellcheck disable=SC1083
+parser_definition_webstop() {
+	setup   REST help:usage abbr:true -- \
+		"Usage: ${2##*/} webstop"
+	# msg -- '' 'gitserver webstop' ''
+	# msg -- 'Options:'
+	# flag    FLAG_D  -d --flag-d
+	# disp    :usage  -h --help
+}
+
+# shellcheck disable=SC1083
+parser_definition_build() {
+	setup   REST help:usage abbr:true -- \
+		"Usage: ${2##*/} build"
+	# msg -- '' 'gitserver build' ''
+	# msg -- 'Options:'
+	# flag    FLAG_A  -a --flag-a
+	# disp    :usage  -h --help
+}
+
+# shellcheck disable=SC1083
+parser_definition_initrepo() {
+	setup   REST help:usage abbr:true -- \
+		"Usage: ${2##*/} initrepo [repository...]"
+	# msg -- '' 'gitserver initrepo' ''
+	# msg -- 'Options:'
+	# flag    FLAG_A  -a --flag-a
+	# disp    :usage  -h --help
+}
+
+# shellcheck disable=SC1083
+parser_definition_readonly() {
+	setup   REST help:usage abbr:true -- \
+		"Usage: ${2##*/} readonly"
+	# msg -- '' 'gitserver initrepo' ''
+	# msg -- 'Options:'
+	# flag    FLAG_A  -a --flag-a
+	# disp    :usage  -h --help
+}
+
+# shellcheck disable=SC1083
+parser_definition_login() {
+	setup   REST help:usage abbr:true -- \
+		"Usage: ${2##*/} login [options...] [arguments...]"
+	msg -- '' 'gitserver login' ''
+	msg -- 'Options:'
+	param   GITUSER -u --user pattern:"root"
+	disp    :usage  -h --help
+}
+
+eval "$(getoptions parser_definition parse "$0")"
+parse "$@"
+eval "set -- $REST"
+
+if [ $# -gt 0 ]; then
+	cmd=$1
+	shift
+	case $cmd in
+		start)
+			eval "$(getoptions parser_definition_start parse "$0")"
+			parse "$@"
+			eval "set -- $REST"
+			# echo "FLAG_A: $FLAG_A"
+      start_gitserver
+			;;
+		stop)
+			eval "$(getoptions parser_definition_stop parse "$0")"
+			parse "$@"
+			eval "set -- $REST"
+			stop_gitserver
+			;;
+		webstart)
+			eval "$(getoptions parser_definition_webstart parse "$0")"
+			parse "$@"
+			eval "set -- $REST"
+			start_gitweb
+			;;
+    webstop)
+			eval "$(getoptions parser_definition_webstop parse "$0")"
+			parse "$@"
+			eval "set -- $REST"
+			stop_gitweb
+			;;
+    build)
+			eval "$(getoptions parser_definition_build parse "$0")"
+			parse "$@"
+			eval "set -- $REST"
+			build_gitserver
+			;;
+    initrepo)
+			eval "$(getoptions parser_definition_initrepo parse "$0")"
+			parse "$@"
+			eval "set -- $REST"
+			init_repo "$@"
+			;;
+    login)
+			eval "$(getoptions parser_definition_login parse "$0")"
+			parse "$@"
+			eval "set -- $REST"
+			login_gitserver "$@"
+			;;
+		readonly)
+			eval "$(getoptions parser_definition_login parse "$0")"
+			parse "$@"
+			eval "set -- $REST"
+			start_readonly "$@"
+			;;
+		--) # no subcommand, arguments only
+	esac
+fi
